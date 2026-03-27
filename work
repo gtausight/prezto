@@ -1,0 +1,125 @@
+# Themis
+# ------------------------------------------------------------------------------
+
+
+# TODO: UPDATE THIS WITH THE PATH TO THEMIS.
+# NOTE: ALL CODE DEPLOYED BY THEMIS MUST LIVE IN "CHECKOUTS_DIR" below.
+export THEMIS_DIR="$HOME/repos/quell-themis"
+export CHECKOUTS_DIR="$THEMIS_DIR/checkouts"
+
+# The following lines are the original paths from installing themis. Commented
+# out due to collisions with neovim.
+#
+# export GOPROXY=https://us-central1-go.pkg.dev/tausight-terraform/tausight-go,https://proxy.golang.org,direct
+# export GONOPROXY=github.com/GoogleCloudPlatform/artifact-registry-go-tools
+# export GONOSUMDB=github.com/tausight/*
+# export GOPRIVATE=github.com/tausight/*
+# export PATH=\`go env GOPATH\`/bin:\$PATH
+
+# export GOPROXY=https://us-central1-go.pkg.dev/tausight-terraform/tausight-go,https://proxy.golang.org,direct
+# export GOPRIVATE=github.com/tausight/*
+export PATH=`go env GOPATH`/bin:$PATH
+export GOPROXY="https://proxy.golang.org,https://us-central1-go.pkg.dev/tausight-terraform/tausight-go,direct"
+export GOPRIVATE="github.com/tausight/*"
+export GONOSUMDB="github.com/tausight/*"
+export GONOPROXY="github.com/tausight/*"
+
+# neovim lol gopls
+export GONOPROXY=\
+golang.org/toolchain,\
+google.golang.org/grpc,\
+github.com/GoogleCloudPlatform/artifact-registry-go-tools,\
+github.com/google/go-cmp,\
+github.com/BurntSushi/toml,\
+golang.org/x/tools,\
+golang.org/x/telemetry,\
+golang.org/x/mod,\
+golang.org/x/sync,\
+golang.org/x/vuln,\
+golang.org/x/text,\
+golang.org/x/exp,\
+honnef.co/go/tools,\
+mvdan.cc/gofumpt,\
+mvdan.cc/xurls
+
+export GONOSUMDB=\
+golang.org/toolchain,\
+github.com/tausight/*,\
+github.com/google/go-cmp,\
+github.com/BurntSushi/toml,\
+golang.org/x/tools,\
+golang.org/x/telemetry,\
+golang.org/x/mod,\
+golang.org/x/sync,\
+golang.org/x/vuln,\
+golang.org/x/text,\
+golang.org/x/exp,\
+honnef.co/go/tools,\
+mvdan.cc/gofumpt,\
+mvdan.cc/xurls
+
+#### run themis from any directory with the below functions
+# a common work flow is to run a terminal with themis in your project directory not in the Themis directory
+run_shell_container() {
+  pushd $THEMIS_DIR && task run-shell-container && popd
+}
+
+delete_shell_container() {
+  pushd $THEMIS_DIR && task delete-shell-container && popd
+}
+
+create_cluster() {
+  pushd $THEMIS_DIR && task create-cluster && popd
+}
+
+delete_cluster() {
+  pushd $THEMIS_DIR && task delete-cluster && popd
+}
+
+nuke_themis() {
+  read -p "Are you sure you want to nuke the cluster and shell container? (y/n) " -n 1 -r
+  echo    # move to a new line
+  if [[ $REPLY =~ ^[Yy]$ ]]
+  then
+    delete_shell_container
+    delete_cluster
+  fi
+}
+
+bootstrap_themis() {
+  create_cluster
+  run_shell_container
+}
+
+nukestrap_themis() {
+  nuke
+  bootstrap
+}
+
+update_themis() {
+  delete_shell_container
+  pushd $THEMIS_DIR && git checkout main && git pull
+  run_shell_container
+}
+
+nuke_update_strap_themis() {
+  nuke_themis
+  update_themis
+  bootstrap_themis
+}
+
+alias bsh="/opt/homebrew/bin/bash"
+
+# Wrapper function for run_shell_container
+rsc() {
+  echo "[rsc] alias for run_shell_container."
+  run_shell_container "$@"
+}
+
+# Wrapper function for run_shell_container
+dsc() {
+  echo "[dsc] alias for delete_shell_container."
+  delete_shell_container "$@"
+}
+
+# vim: ft=zsh
